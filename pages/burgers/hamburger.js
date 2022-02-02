@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import _, { add } from "lodash";
+import _ from "lodash";
 import Image from "next/image";
 
 import Layout from "../../src/components/layout";
