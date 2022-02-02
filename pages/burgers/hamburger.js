@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import _, { add } from "lodash";
 import Image from "next/image";
 
 import Layout from "../../src/components/layout";
@@ -16,6 +17,8 @@ export default function Hamburger() {
 	const addSauceData = data.modifiers[2];
 	const cartData = data.cart;
 
+
+
 	// console.log("THIS IS DATA", hamburgerData);
 	// const router = useRouter();
 	// console.log("THIS IS ROUTER", router);
@@ -26,6 +29,43 @@ export default function Hamburger() {
 	const [selectSauce, setSelectSauce] = useState(false);
 	const [hamburgerPrice, setHamburgerPrice] = useState(10);
 	const [hamburgerInfo, setHamburgerInfo] = useState({});
+
+  /*
+  Johnny's Code
+  */
+
+  
+  let modifiers = _.keyBy(data.modifiers, "id"); 
+  // add checked to hash
+  _.map(modifiers, (el) => {
+    el.checked = false;
+  })
+
+  const [addOns, setAddOns] = useState(modifiers);
+
+  const updateAddOns = (id) => {
+    setAddOns(prevState => {
+      return {...prevState, [id]: {
+        ...prevState[id],
+        checked: prevState[id].checked ? false : true
+      }}
+    })
+  }
+
+  //loop through addons, so that it more scalable. you dont have to create update price function for each addon
+  const getTotalPrice = () => {
+    let total = hamburgerPrice;
+
+    _.forEach(addOns, (item) => {
+      if (item.checked) total += item.price;
+    })
+
+    return total;
+  }
+
+/*
+ END OF CODE
+*/
 
 	let tempPrice = hamburgerPrice;
 
@@ -151,10 +191,10 @@ export default function Hamburger() {
 									<input
 										className="border-2 border-gray-300 rounded-full w-6 h-6 focus:outline-none"
 										type="radio"
-										checked={selectBacon}
+										checked={addOns.bacon.checked}
 										value="2"
-										onClick={handleSelectBacon}
-										onChange={handleChangeBacon}
+										onClick={() => updateAddOns("bacon")}
+										// onChange={() => updateAddOns("bacon")}
 									/>
 								</div>
 								<div className="flex">
@@ -164,10 +204,10 @@ export default function Hamburger() {
 									<input
 										className="border-2 border-gray-300 rounded-full w-6 h-6 focus:outline-none"
 										type="radio"
-										checked={selectTomato}
+										checked={addOns.tomato.checked}
 										value={addTomatoData.price}
-										onClick={handleExtraTomato}
-										onChange={handleChangeTomato}
+										onClick={() => updateAddOns("tomato")}
+										// onChange={() => updateAddOns("tomato")}
 									/>
 								</div>
 								{/* <div className="flex">
@@ -189,7 +229,7 @@ export default function Hamburger() {
 									className="title-font font-medium text-2xl text-gray-900"
 									// value={hamburgerPrice}
 								>
-									${hamburgerPrice}
+									{getTotalPrice()}
 								</span>
 
 								<button
