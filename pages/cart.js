@@ -2,19 +2,14 @@ import { useState } from "react";
 import Image from "next/image";
 // import data from "../src/data";
 
-import Header from "../src/components/header";
-import Footer from "../src/components/footer";
 import UserCart from "../src/components/cart";
+import Layout from "../src/components/layout";
+import _ from "lodash";
 
 export default function Cart() {
-	const [cart, setCart] = useState([]);
-	console.log("THIS IS CART", cart);
-
 	return (
-		<>
-			<Header />
+		<Layout>
 			<UserCart />
-			<Footer />
-		</>
+		</Layout>
 	);
 }

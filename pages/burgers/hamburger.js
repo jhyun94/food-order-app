@@ -1,157 +1,101 @@
 import { useState, useEffect } from "react";
-import _ from "lodash";
+import _, { add, set } from "lodash";
 import Image from "next/image";
+import Link from "next/link";
 
 import Layout from "../../src/components/layout";
 import data from "../../src/data";
 
+//const userCart = JSON.parse(localStorage.getItem("userCart"));
+
 export default function Hamburger() {
-	const hamburgerData = {
-		id: "hamburger",
-		item: "Hamburger",
-		price: 10,
-		image: "https://www.spendwithpennies.com/wp-content/uploads/2019/05/Classic-Burger-SpendWithPennies_-2.jpg",
-	};
-	const addBaconData = data.modifiers[0];
-	const addTomatoData = data.modifiers[1];
-	const addSauceData = data.modifiers[2];
-	const cartData = data.cart;
-
-
-
-	// console.log("THIS IS DATA", hamburgerData);
-	// const router = useRouter();
-	// console.log("THIS IS ROUTER", router);
-
 	const [cart, setCart] = useState([]);
-	const [selectBacon, setSelectBacon] = useState(false);
-	const [selectTomato, setSelectTomato] = useState(false);
-	const [selectSauce, setSelectSauce] = useState(false);
+	const [hamburgerData, setHamburgerData] = useState(data.burgers[0]);
 	const [hamburgerPrice, setHamburgerPrice] = useState(10);
-	const [hamburgerInfo, setHamburgerInfo] = useState({});
+  const [currentOrder, setCurrentOrder] = useState(data.burgers[0]);
 
-  /*
-  Johnny's Code
-  */
-
-  
-  let modifiers = _.keyBy(data.modifiers, "id"); 
-  // add checked to hash
-  _.map(modifiers, (el) => {
-    el.checked = false;
-  })
+	let modifiers = _.keyBy(data.modifiers, "id");
+	_.map(modifiers, (mod) => {
+		mod.checked = false;
+	});
 
   const [addOns, setAddOns] = useState(modifiers);
 
-  const updateAddOns = (id) => {
-    setAddOns(prevState => {
-      return {...prevState, [id]: {
-        ...prevState[id],
-        checked: prevState[id].checked ? false : true
-      }}
-    })
-  }
-
-  //loop through addons, so that it more scalable. you dont have to create update price function for each addon
-  const getTotalPrice = () => {
-    let total = hamburgerPrice;
-
-    _.forEach(addOns, (item) => {
-      if (item.checked) total += item.price;
-    })
-
-    return total;
-  }
-
-/*
- END OF CODE
-*/
-
-	let tempPrice = hamburgerPrice;
-
-	//update entire hamburger object and set that to state, use spread operator
-
-	function handleSelectBacon(e) {
-		e.preventDefault;
-		setSelectBacon(!selectBacon);
-
-		//NOT SURE WHY THIS WORKS BUT IT DOES
-		if (selectBacon) {
-			//setHamburgerPrice(hamburgerInfo.price + 2);
-			setHamburgerInfo({
-				...hamburgerData,
-				price: hamburgerPrice + 2,
-			});
-			console.log("THIS IS BACON", hamburgerPrice);
-		}
-		if (!selectBacon && hamburgerInfo.price !== 10) {
-			//setHamburgerPrice(hamburgerInfo.price - 2);
-			setHamburgerInfo({
-				...hamburgerData,
-				price: hamburgerPrice - 2,
-			});
-			console.log("THIS IS NO BACON", hamburgerPrice);
-		}
-	}
-	console.log("THIS HAMBURGER PRICE", hamburgerInfo);
-	//console.log(selectBacon);
-	//console.log("THIS IS HAMBURGER INFO BACON ADD", hamburgerInfo);
-
-	//NOT WORKING
-	function handleExtraTomato(e) {
-		e.preventDefault;
-		setSelectTomato(!selectTomato);
-
-		if (selectTomato) {
-			setHamburgerPrice(hamburgerInfo.price + 1);
-			setHamburgerInfo({
-				...hamburgerData,
-				price: hamburgerPrice,
-			});
-		}
-		if (!selectTomato && hamburgerInfo.price !== 10) {
-			setHamburgerPrice(hamburgerInfo.price - 1);
-			setHamburgerInfo({
-				...hamburgerData,
-				price: hamburgerPrice,
-			});
-		}
-		//console.log("THIS IS THE EVENT", e);
+	function updateAddOns(id) {
+		setAddOns((prevState) => {
+			//console.log("THIS IS PREVSTATE", prevState[id]);
+			return {
+				...prevState,
+				[id]: {
+					//if previous state isnt brought in here, object will only be checked
+					...prevState[id],
+					checked: prevState[id].checked ? false : true,
+				},
+			};
+		});
 	}
 
-	// function handleExtraSauce(e) {
-	// 	e.preventDefault;
-	// 	setSelectSauce(!selectSauce);
-	// 	if (!selectSauce) {
-	// 		setHamburgerPrice(+hamburgerPrice + +e.target.value);
-	// 	}
-	// 	if (selectSauce && hamburgerPrice !== 10) {
-	// 		setHamburgerPrice(+hamburgerPrice - +e.target.value);
-	// 	}
-	// 	hamburgerData.price = hamburgerPrice;
-	// }
+	const getTotalPrice = () => {
+		let total = hamburgerPrice;
+		_.forEach(addOns, (mod) => {
+			if (mod.checked) total += mod.price;
+		});
+
+		// console.log(total);
+		return total;
+	};
+
+  useEffect(() => {
+    let userCart = localStorage.getItem("userCart");
+
+    if (userCart) {
+      setCart(JSON.parse(userCart));
+    }
+  }, [])
+
+
+	//updating hamburgerData state price when addOns state is changed
+	useEffect(() => {
+		// _.map(addOns, (modifier) => {
+		// 	//reading as checked.  figure out how to push mods into an array in hamData object
+		// 	if (modifier.checked) {
+		// 		setHamburgerData({
+		// 			...hamburgerData,
+		// 			modifiers: modifier.item,
+		// 		});
+		// 		//hamburgerData.modifiers = modifier.item;
+		// 	}
+		// });
+		setHamburgerData({
+			...hamburgerData,
+			price: getTotalPrice(),
+			// return {
+			// 	modifiers: {
+			// 		...prevState,
+			// 		getMod() {},
+			// 	},
+			// };
+		});
+	}, [addOns]);
+	//console.log("THIS IS USE EFFECT", hamburgerData);
 
 	function handleAddToCart() {
-		//add hamburger hamburgerPrice to data cart array
-		//spread in rest of hamburger object
-		hamburgerData.price = hamburgerPrice;
-		setHamburgerInfo(hamburgerData);
-		setCart([...cart, hamburgerInfo]);
-		console.log("THIS IS THE CART", cart);
+    _.forEach(addOns, (mod) => {
+			if (mod.checked) {
+        currentOrder.modifiers.push(mod.item);
+      }
+		});
+
+    currentOrder.price = getTotalPrice();
+    setCart([...cart, currentOrder]);
+
 	}
 
-	// useEffect(() => {
-	// 	setHamburgerPrice(+hamburgerPrice - 2);
-	// }, [selectBacon]);
+	// console.log("THIS IS ADD ONS", addOns);
 
-	function handleChangeBacon(e) {}
-
-	function handleChangeTomato(e) {}
-
-	// function handleChangeSauce(e) {
-	// 	console.log("THIS IS HAMBURGER hamburgerPrice", hamburgerPrice);
-	// 	console.log("THIS IS HANDLE CHANGE", e.target.value);
-	// }
+	useEffect(() => {
+		localStorage.setItem("userCart", JSON.stringify(cart));
+	}, [cart]);
 
 	return (
 		<Layout>
@@ -168,7 +112,7 @@ export default function Hamburger() {
 						</div>
 						<div className="lg:w-1/2 w-full lg:pl-10 lg:py-6 mt-6 lg:mt-0">
 							<h1 className="text-gray-900 text-3xl title-font font-medium mb-1">
-								{hamburgerData.item} - ${hamburgerData.price}
+								{hamburgerData.item} - ${getTotalPrice()}
 							</h1>
 
 							<p className="leading-relaxed">
@@ -181,64 +125,47 @@ export default function Hamburger() {
 								neutra jean shorts keytar banjo tattooed umami
 								cardigan.
 							</p>
-							{/* flex mt-6 space-x-4 grid grid-cols-3 gap-4 mb-5 */}
-							{/* "" */}
 							<div className="flex mt-6 items-center pb-5 border-b-2 border-gray-100 gap-4 mb-5">
-								<div className="flex">
-									<span className="mr-3">
-										Add Bacon $2.00
-									</span>
-									<input
-										className="border-2 border-gray-300 rounded-full w-6 h-6 focus:outline-none"
-										type="radio"
-										checked={addOns.bacon.checked}
-										value="2"
-										onClick={() => updateAddOns("bacon")}
-										// onChange={() => updateAddOns("bacon")}
-									/>
-								</div>
-								<div className="flex">
-									<span className="mr-3">
-										Extra Tomato $1.00
-									</span>
-									<input
-										className="border-2 border-gray-300 rounded-full w-6 h-6 focus:outline-none"
-										type="radio"
-										checked={addOns.tomato.checked}
-										value={addTomatoData.price}
-										onClick={() => updateAddOns("tomato")}
-										// onChange={() => updateAddOns("tomato")}
-									/>
-								</div>
-								{/* <div className="flex">
-									<span className="mr-3">
-										Extra Sauce $1.00
-									</span>
-									<input
-										className="border-2 border-gray-300 rounded-full w-6 h-6 focus:outline-none"
-										type="radio"
-										checked={selectSauce}
-										value={addSauceData.price}
-										onClick={handleExtraSauce}
-										onChange={handleChangeSauce}
-									/>
-								</div> */}
+								{_.map(addOns, (mod) => {
+									//console.log("THIS IS MOD", mod);
+									return (
+										<div className="flex">
+											<span className="mr-3">
+												Add {mod.item} $
+												{mod.price.toFixed(2)}
+											</span>
+											<input
+												className="border-2 border-gray-300 rounded-full w-6 h-6 focus:outline-none"
+												type="radio"
+												checked={mod.checked}
+												value="2"
+												onClick={() =>
+													updateAddOns(mod.id)
+												}
+												onChange={(e) => {}}
+											/>
+										</div>
+									);
+								})}
+
 							</div>
 							<div className="flex">
 								<span
 									className="title-font font-medium text-2xl text-gray-900"
 									// value={hamburgerPrice}
 								>
-									{getTotalPrice()}
+									{/* ${getTotalPrice()} */}
 								</span>
 
+								{/* <Link href="/cart" passHref> */}
 								<button
 									className="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded"
 									onClick={handleAddToCart}
+									onChange={(e) => {}}
 								>
 									Add To Cart
 								</button>
-
+								{/* </Link> */}
 								<button className="rounded-full w-10 h-10 bg-gray-200 p-0 border-0 inline-flex items-center justify-center text-gray-500 ml-4">
 									<svg
 										fill="currentColor"
